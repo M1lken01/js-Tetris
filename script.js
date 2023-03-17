@@ -106,6 +106,7 @@ const shapes = [{
 ];
 let paused = false;
 let game = {
+    'score': 0,
     'shape': {},
     'moving': [+0, -7], // [x, y]
     'stable': Array.from({
@@ -202,6 +203,7 @@ function cleanCheck() {
         if (game.stable[i].reduce((total, current) => total + current, 0) == yEdge) {
             game.stable = game.stable.slice(0, i).concat(game.stable.slice(i + 1));
             game.stable.push([0, 0, 0, 0, 0, 0, 0, 0, 0]);
+            updateScore();
         }
     }
     if (game.stable[16].reduce((total, current) => total + current, 0) > 0) {
@@ -246,6 +248,11 @@ function drawGame() {
             }
         }
     }
+}
+
+function updateScore(value = 1) {
+    game.score += value;
+    document.querySelector('#score').innerHTML = 'Score: ' + game.score;
 }
 
 function gameLoop() {
