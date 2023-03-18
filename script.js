@@ -206,8 +206,9 @@ function cleanCheck() {
             updateScore();
         }
     }
-    if (game.stable[16].reduce((total, current) => total + current, 0) > 0) {
+    if (game.stable[16].reduce((total, current) => total + current, 0) > 0) { // if game end
         pause();
+        document.querySelector('#score').innerHTML = 'Game Ended. Score: ' + game.score;
     }
 }
 
@@ -230,7 +231,7 @@ function getHeight(x) {
 
 function drawBlock(x, y, color = 'blue') {
     ctx.fillStyle = color;
-    ctx.fillRect(rectX + (rectSize * x), rectY + (rectSize * y), rectSize, rectSize); // food
+    ctx.fillRect(rectX + (rectSize * x), rectY + (rectSize * y), rectSize, rectSize);
 }
 
 function drawGame() {
