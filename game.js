@@ -1,6 +1,6 @@
 const rows = 20;
 const cols = 10;
-let paused = false;
+let paused = 0;
 let board = Array.from({ length: rows }, () => Array.from({ length: cols }, () => 0));
 const piecesData = {
   I: {
@@ -74,7 +74,9 @@ const piecesData = {
     color: 'purple',
   },
 };
+let nextPieces = Array.from({ length: 4 }, () => getRandomPiece());
 let currentPiece = { ...piecesData.I, position: [5, 0], rot: 0 };
+let hold = getRandomPiece();
 
 function move(vector = [0, 0], rotate = 0) {
   //todo: add rotation validity check
@@ -201,6 +203,11 @@ function getRandomPiece() {
   return piecesData[pieceKeys[Math.floor(Math.random() * pieceKeys.length)]];
 }
 
+function getRandomPieceName() {
+  const pieceKeys = Object.keys(piecesData);
+  return pieceKeys[Math.floor(Math.random() * pieceKeys.length)];
+}
+
 function newPiece() {
   currentPiece = { ...getRandomPiece(), position: [5, 0], rot: 0 };
 }
@@ -219,9 +226,6 @@ function init() {
 
 init();
 
-drawPiece(currentPiece);
-console.log(currentPiece);
-move([0, 0], 0);
 board[19] = [
   0,
   { color: 'red' },
