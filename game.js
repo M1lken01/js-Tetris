@@ -75,13 +75,14 @@ const piecesData = {
     color: 'purple',
   },
 };
-let nextPieces = Array.from({ length: 4 }, () => getRandomPiece());
+const gameSpeed = 1000;
 let currentPiece = { ...piecesData.I, position: [5, 0], rot: 0 };
-let hold = getRandomPiece();
+let nextPieces = Array.from({ length: 4 }, () => getRandomPiece());
+let hold = 0;
 
 function move(vector = [0, 0], rotate = 0) {
   //todo: add rotation validity check
-  console.log(vector)
+  console.log(vector);
   if (
     validCheck({
       position: [currentPiece.position[0] + vector[0], currentPiece.position[1] + vector[1]],
@@ -144,9 +145,8 @@ function rotateArrayClockwise(arr) {
 function validCheck(piece, place) {
   const { position, shape, vectorY } = piece;
   for (let i = 0; i < shape.length; i++) {
-    const [px, py] = shape[i];
-    const boardX = position[0] + px;
-    const boardY = position[1] + py;
+    const boardX = position[0] + shape[i][0];
+    const boardY = position[1] + shape[i][1];
 
     const isInBoundsX = board[0][boardX] !== undefined;
     const isInBoundsY = board[boardY] !== undefined;
@@ -168,12 +168,17 @@ function validCheck(piece, place) {
 
 function fastPlace() {
   for (let i = 0; i < rows; i++) {
-    if (!validCheck({
-      position: [currentPiece.position[0], currentPiece.position[1] + i],
-      shape: currentPiece.shape,
-      vectorY: i,
-    }, false)) {
-      console.log(currentPiece.position[1] + i - 1)
+    if (
+      !validCheck(
+        {
+          position: [currentPiece.position[0], currentPiece.position[1] + i],
+          shape: currentPiece.shape,
+          vectorY: i,
+        },
+        false,
+      )
+    ) {
+      console.log(currentPiece.position[1] + i - 1);
       move([0, currentPiece.position[1] + i - 1]);
       placePiece();
       break;
@@ -183,23 +188,18 @@ function fastPlace() {
 
 function clearLines() {
   const clearedLines = [];
-
   for (let i = 0; i < rows; i++) {
     if (board[i].every((cell) => cell !== 0)) {
       clearedLines.push(i);
     }
   }
-  console.log(clearedLines);
-
   for (let i = 0; i < clearedLines.length; i++) {
-    console.log('clearing ' + i);
     const clearedRow = clearedLines[i];
     score++;
-    document.getElementById("score").innerHTML = "Score: " + score;
+    document.getElementById('score').innerHTML = 'Score: ' + score;
     board.splice(clearedRow, 1);
     board.unshift(Array(cols).fill(0));
   }
-
   drawGame();
 }
 
@@ -227,20 +227,35 @@ function getRandomPieceName() {
 }
 
 function newPiece() {
-  currentPiece = { ...getRandomPiece(), position: [5, 0], rot: 0 };
+  currentPiece = { ...nextPieces.shift(), position: [5, 0], rot: 0 };
+  nextPieces.push(getRandomPiece());
   move();
+  drawNext();
 }
 
-function gameLoop() {
-  //move(directions.down);
-  setTimeout(gameLoop, 500);
+function holdPiece() {
+  const tempPiece = { ...currentPiece };
+  if (hold === 0) {
+    newPiece();
+  } else {
+    currentPiece = { ...hold, position: [5, 0], rot: 0 };
+  }
+  hold = { ...tempPiece };
+  move();
+  drawHold();
 }
+
+/*function update() {
+  //move([0, 1]);
+}
+
+const gameInterval = setInterval(update, gameSpeed);*/
 
 function init() {
   document.addEventListener('keydown', onKeyDown);
   //game.shape = getShape();
   render();
-  gameLoop();
+  update();
 }
 
 init();

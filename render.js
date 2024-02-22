@@ -67,10 +67,15 @@ function drawGame() {
 }
 
 function drawHold() {
+  ctxHold.fillStyle = bg;
+  ctxHold.fillRect(0, 0, canvasHold.width, canvasHold.height);
+  if (hold === 0) return;
   drawPiece(ctxHold, { ...hold, position: [0, 0] });
 }
 
 function drawNext() {
+  ctxNext.fillStyle = bg;
+  ctxNext.fillRect(0, 0, canvasNext.width, canvasNext.height);
   for (let i = 0; i < nextPieces.length; i++) {
     drawPiece(ctxNext, { ...nextPieces[i], position: [0, i * 4] });
   }

@@ -4,6 +4,7 @@ const controls = {
   down: 'ArrowDown',
   rotate: 'ArrowUp',
   place: ' ',
+  hold: 'c',
   pause: 'p',
 };
 
@@ -28,6 +29,9 @@ function onKeyDown(event) {
         break;
       case controls.place.toLowerCase():
         fastPlace();
+        break;
+      case controls.hold.toLowerCase():
+        holdPiece();
         break;
     }
     move(vector, rotation);
