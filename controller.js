@@ -3,7 +3,7 @@ const controls = {
   right: 'ArrowRight',
   down: 'ArrowDown',
   rotate: 'ArrowUp',
-  place: 'space',
+  place: ' ',
   pause: 'p',
 };
 
@@ -25,6 +25,9 @@ function onKeyDown(event) {
         break;
       case controls.rotate.toLowerCase():
         rotation = 1;
+        break;
+      case controls.place.toLowerCase():
+        fastPlace();
         break;
     }
     move(vector, rotation);

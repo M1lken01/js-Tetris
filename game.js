@@ -1,6 +1,7 @@
 const rows = 20;
 const cols = 10;
 let paused = 0;
+let score = 0;
 let board = Array.from({ length: rows }, () => Array.from({ length: cols }, () => 0));
 const piecesData = {
   I: {
@@ -80,7 +81,7 @@ let hold = getRandomPiece();
 
 function move(vector = [0, 0], rotate = 0) {
   //todo: add rotation validity check
-
+  console.log(vector)
   if (
     validCheck({
       position: [currentPiece.position[0] + vector[0], currentPiece.position[1] + vector[1]],
@@ -140,7 +141,7 @@ function rotateArrayClockwise(arr) {
   return rotatedArray;
 }
 
-function validCheck(piece) {
+function validCheck(piece, place) {
   const { position, shape, vectorY } = piece;
   for (let i = 0; i < shape.length; i++) {
     const [px, py] = shape[i];
@@ -151,18 +152,33 @@ function validCheck(piece) {
     const isInBoundsY = board[boardY] !== undefined;
 
     if (!isInBoundsY && vectorY > 0) {
-      placePiece();
+      if (place) placePiece();
       return false;
     }
     if (!isInBoundsX || !isInBoundsY) return false;
     const isEmpty = board[boardY][boardX] === 0;
     if (!isEmpty && vectorY > 0) {
-      placePiece();
+      if (place) placePiece();
       return false;
     }
     if (!isEmpty) return false;
   }
   return true;
+}
+
+function fastPlace() {
+  for (let i = 0; i < rows; i++) {
+    if (!validCheck({
+      position: [currentPiece.position[0], currentPiece.position[1] + i],
+      shape: currentPiece.shape,
+      vectorY: i,
+    }, false)) {
+      console.log(currentPiece.position[1] + i - 1)
+      move([0, currentPiece.position[1] + i - 1]);
+      placePiece();
+      break;
+    }
+  }
 }
 
 function clearLines() {
@@ -178,6 +194,8 @@ function clearLines() {
   for (let i = 0; i < clearedLines.length; i++) {
     console.log('clearing ' + i);
     const clearedRow = clearedLines[i];
+    score++;
+    document.getElementById("score").innerHTML = "Score: " + score;
     board.splice(clearedRow, 1);
     board.unshift(Array(cols).fill(0));
   }
@@ -210,6 +228,7 @@ function getRandomPieceName() {
 
 function newPiece() {
   currentPiece = { ...getRandomPiece(), position: [5, 0], rot: 0 };
+  move();
 }
 
 function gameLoop() {
