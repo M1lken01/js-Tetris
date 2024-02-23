@@ -5,18 +5,25 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="style.css" />
-    <script src="controller.js" defer></script>
-    <script src="render.js" defer></script>
-    <script src="game.js" defer></script>
     <title>Tetris</title>
   </head>
 
   <body>
-    <main>
-      <h3 id="score">Score: 0</h3>
-      <canvas id="hold"></canvas>
-      <canvas id="game"></canvas>
-      <canvas id="next"></canvas>
-    </main>
+    <div class="wrapper">
+      <h1>Tetris</h1>
+      <a href="game.html" id="play" class="button">play</a>
+      <h2>High score: 0</h2>
+      <details>
+        <summary>Controls</summary>
+        <ul>
+          <li>[Left Arrow], [Right Arrow] - left and right movement</li>
+          <li>[Down Arrow] - down movement</li>
+          <li>[Up Arrow] - clockwise rotate</li>
+          <li>[Space] - fast place</li>
+          <li>[C] - hold piece</li>
+        </ul>
+      </details>
+      <h2>Developed by: <a href="https://github.com/M1lken01">m1lk3n01</a></h2>
+    </div>
   </body>
 </html>

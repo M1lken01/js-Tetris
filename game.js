@@ -76,32 +76,24 @@ const piecesData = {
   },
 };
 const gameSpeed = 1000;
-let currentPiece = { ...piecesData.I, position: [5, 0], rot: 0 };
+let currentPiece = { ...piecesData.I, position: [3, 0], rot: 0 };
 let nextPieces = Array.from({ length: 4 }, () => getRandomPiece());
 let hold = 0;
 
-function move(vector = [0, 0], rotate = 0) {
+function move(vector = [0, 0], rotate = 0, place = true) {
   //todo: add rotation validity check
   console.log(vector);
   if (
-    validCheck({
-      position: [currentPiece.position[0] + vector[0], currentPiece.position[1] + vector[1]],
-      shape: rotate ? rotatePiece(currentPiece) : currentPiece.shape,
-      vectorY: vector[1],
-    })
+    validCheck(
+      {
+        position: [currentPiece.position[0] + vector[0], currentPiece.position[1] + vector[1]],
+        shape: rotate ? rotatePiece(currentPiece) : currentPiece.shape,
+        vectorY: vector[1],
+      },
+      place,
+    )
   ) {
     currentPiece.shape = rotate ? rotatePiece(currentPiece) : currentPiece.shape;
-    currentPiece.position[0] += vector[0];
-    currentPiece.position[1] += vector[1];
-  }
-  drawGame();
-}
-
-function move2(vector = [0, 0], rotate = 0) {
-  //todo: add rotation validity check
-  currentPiece.shape = rotate ? rotatePiece(currentPiece) : currentPiece.shape;
-
-  if (validCheck({ position: [currentPiece.position[0] + vector[0], currentPiece.position[1] + vector[1]], shape: currentPiece.shape, vectorY: vector[1] })) {
     currentPiece.position[0] += vector[0];
     currentPiece.position[1] += vector[1];
   }
@@ -122,9 +114,7 @@ function mapToShape(mapArray) {
   const shape = [];
   for (let y = 0; y < mapArray.length; y++) {
     for (let x = 0; x < mapArray[y].length; x++) {
-      if (mapArray[x][y] === 1) {
-        shape.push([x, y]);
-      }
+      if (mapArray[x][y] === 1) shape.push([x, y]);
     }
   }
   return shape;
@@ -132,17 +122,17 @@ function mapToShape(mapArray) {
 
 function rotateArrayClockwise(arr) {
   const rows = arr.length;
-  const columns = arr[0].length;
-  const rotatedArray = Array.from({ length: columns }, () => Array.from({ length: rows }));
+  const cols = arr[0].length;
+  const rotatedArray = Array.from({ length: cols }, () => Array.from({ length: rows }));
   for (let i = 0; i < rows; i++) {
-    for (let j = 0; j < columns; j++) {
+    for (let j = 0; j < cols; j++) {
       rotatedArray[j][rows - 1 - i] = arr[i][j];
     }
   }
   return rotatedArray;
 }
 
-function validCheck(piece, place) {
+function validCheck(piece, place = false) {
   const { position, shape, vectorY } = piece;
   for (let i = 0; i < shape.length; i++) {
     const boardX = position[0] + shape[i][0];
@@ -166,44 +156,55 @@ function validCheck(piece, place) {
   return true;
 }
 
-function fastPlace() {
+function fastPlace(place = true) {
   for (let i = 0; i < rows; i++) {
     if (
-      !validCheck(
-        {
-          position: [currentPiece.position[0], currentPiece.position[1] + i],
-          shape: currentPiece.shape,
-          vectorY: i,
-        },
-        false,
-      )
+      !validCheck({
+        position: [currentPiece.position[0], currentPiece.position[1] + i],
+        shape: currentPiece.shape,
+        vectorY: i,
+      })
     ) {
-      console.log(currentPiece.position[1] + i - 1);
-      move([0, currentPiece.position[1] + i - 1]);
-      placePiece();
-      break;
+      console.log('y:' + currentPiece.position[1] + 'i:' + (i - 1));
+      if (place) {
+        console.log('SHOULD MOVE');
+        move([0, i - 1]);
+        placePiece();
+      }
+      const ghost = {
+        ...currentPiece,
+        position: [currentPiece.position[0], currentPiece.position[1] + i - 1],
+        color: 'gray',
+      };
+      return ghost;
     }
   }
 }
 
 function clearLines() {
   const clearedLines = [];
+
   for (let i = 0; i < rows; i++) {
     if (board[i].every((cell) => cell !== 0)) {
       clearedLines.push(i);
     }
   }
+  console.log(clearedLines);
+
   for (let i = 0; i < clearedLines.length; i++) {
+    console.log('clearing ' + i);
     const clearedRow = clearedLines[i];
     score++;
     document.getElementById('score').innerHTML = 'Score: ' + score;
     board.splice(clearedRow, 1);
     board.unshift(Array(cols).fill(0));
   }
+
   drawGame();
 }
 
 function placePiece() {
+  console.log('PLACE CALLED');
   for (let i = 0; i < currentPiece.shape.length; i++) {
     const [px, py] = currentPiece.shape[i];
     const boardX = currentPiece.position[0] + px;
@@ -227,7 +228,7 @@ function getRandomPieceName() {
 }
 
 function newPiece() {
-  currentPiece = { ...nextPieces.shift(), position: [5, 0], rot: 0 };
+  currentPiece = { ...nextPieces.shift(), position: [3, 0], rot: 0 };
   nextPieces.push(getRandomPiece());
   move();
   drawNext();
@@ -235,25 +236,20 @@ function newPiece() {
 
 function holdPiece() {
   const tempPiece = { ...currentPiece };
-  if (hold === 0) {
-    newPiece();
-  } else {
-    currentPiece = { ...hold, position: [5, 0], rot: 0 };
-  }
+  if (hold === 0) newPiece();
+  else currentPiece = { ...hold, position: [3, 0], rot: 0 };
   hold = { ...tempPiece };
   move();
   drawHold();
 }
 
-/*function update() {
-  //move([0, 1]);
+function update() {
+  move([0, 1]);
 }
-
-const gameInterval = setInterval(update, gameSpeed);*/
+const gameInterval = setInterval(update, gameSpeed);
 
 function init() {
   document.addEventListener('keydown', onKeyDown);
-  //game.shape = getShape();
   render();
   update();
 }

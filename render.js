@@ -9,7 +9,7 @@ const bg = '#111';
 const rectSize = 30;
 const rectPad = 2;
 
-function drawPiece(context, piece) {
+function drawPiece(piece, context = ctx) {
   for (let i = 0; i < piece.shape.length; i++) {
     drawRect(context, {
       x: piece.position[0] + piece.shape[i][0],
@@ -63,21 +63,34 @@ function drawGame() {
   // draw rects from the game manager
   drawGrid();
   drawStatic();
-  drawPiece(ctx, currentPiece);
+  drawPiece(fastPlace(false));
+  drawPiece(currentPiece);
 }
 
 function drawHold() {
   ctxHold.fillStyle = bg;
   ctxHold.fillRect(0, 0, canvasHold.width, canvasHold.height);
   if (hold === 0) return;
-  drawPiece(ctxHold, { ...hold, position: [0, 0] });
+  let position = [0, 0]
+  if (hold.size % 2 != 0) {
+    position = [.5, position[1] + .5];
+  } else if (hold.size === 2) {
+    position = [1, position[1] + 1];
+  }
+  drawPiece({ ...hold, position }, ctxHold);
 }
 
 function drawNext() {
   ctxNext.fillStyle = bg;
   ctxNext.fillRect(0, 0, canvasNext.width, canvasNext.height);
   for (let i = 0; i < nextPieces.length; i++) {
-    drawPiece(ctxNext, { ...nextPieces[i], position: [0, i * 4] });
+    let position = [0, i * 4]
+    if (nextPieces[i].size % 2 != 0) {
+      position = [.5, position[1] + .5];
+    } else if (nextPieces[i].size === 2) {
+      position = [1, position[1] + 1];
+    }
+    drawPiece({ ...nextPieces[i], position }, ctxNext);
   }
 }
 
