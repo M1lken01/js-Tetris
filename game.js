@@ -1,5 +1,6 @@
 const rows = 20;
 const cols = 10;
+let ended = 0;
 let paused = 0;
 let score = 0;
 let board = Array.from({ length: rows }, () => Array.from({ length: cols }, () => 0));
@@ -76,27 +77,41 @@ const piecesData = {
   },
 };
 const gameSpeed = 1000;
-let currentPiece = { ...piecesData.I, position: [3, 0], rot: 0 };
+let usedHold = 0;
+let currentPiece = { ...getRandomPiece(), position: [3, 0] };
 let nextPieces = Array.from({ length: 4 }, () => getRandomPiece());
 let hold = 0;
 
 function move(vector = [0, 0], rotate = 0, place = true) {
-  //todo: add rotation validity check
-  console.log(vector);
-  if (
-    validCheck(
-      {
-        position: [currentPiece.position[0] + vector[0], currentPiece.position[1] + vector[1]],
-        shape: rotate ? rotatePiece(currentPiece) : currentPiece.shape,
-        vectorY: vector[1],
-      },
-      place,
-    )
-  ) {
-    currentPiece.shape = rotate ? rotatePiece(currentPiece) : currentPiece.shape;
-    currentPiece.position[0] += vector[0];
-    currentPiece.position[1] += vector[1];
+  if (ended || paused) return;
+
+  const newPosition = [currentPiece.position[0] + vector[0], currentPiece.position[1] + vector[1]];
+  const newShape = rotate ? rotatePiece(currentPiece) : currentPiece.shape;
+  const offsetLimit = Math.floor(currentPiece.size / 2);
+
+  let closestOffset = Infinity;
+  let rotatedValidPosition = null;
+
+  if (rotate && currentPiece.size > 2) {
+    for (let offset = -offsetLimit; offset <= offsetLimit; offset++) {
+      const rotatedPosition = [newPosition[0] + offset, newPosition[1]];
+      if (validCheck({ position: rotatedPosition, shape: newShape, vectorY: vector[1] }, false)) {
+        const currentOffset = Math.abs(offset);
+        if (currentOffset < closestOffset) {
+          closestOffset = currentOffset;
+          rotatedValidPosition = rotatedPosition;
+        }
+      }
+    }
   }
+
+  const finalPosition = rotatedValidPosition || newPosition;
+
+  if (validCheck({ position: finalPosition, shape: newShape, vectorY: vector[1] }, place)) {
+    currentPiece.shape = newShape;
+    currentPiece.position = finalPosition;
+  }
+
   drawGame();
 }
 
@@ -165,9 +180,7 @@ function fastPlace(place = true) {
         vectorY: i,
       })
     ) {
-      console.log('y:' + currentPiece.position[1] + 'i:' + (i - 1));
       if (place) {
-        console.log('SHOULD MOVE');
         move([0, i - 1]);
         placePiece();
       }
@@ -195,7 +208,7 @@ function clearLines() {
     console.log('clearing ' + i);
     const clearedRow = clearedLines[i];
     score++;
-    document.getElementById('score').innerHTML = 'Score: ' + score;
+    document.getElementById('score').innerHTML = score;
     board.splice(clearedRow, 1);
     board.unshift(Array(cols).fill(0));
   }
@@ -204,7 +217,6 @@ function clearLines() {
 }
 
 function placePiece() {
-  console.log('PLACE CALLED');
   for (let i = 0; i < currentPiece.shape.length; i++) {
     const [px, py] = currentPiece.shape[i];
     const boardX = currentPiece.position[0] + px;
@@ -213,6 +225,7 @@ function placePiece() {
       board[boardY][boardX] = { color: currentPiece.color };
     }
   }
+  usedHold = 0;
   clearLines();
   newPiece();
 }
@@ -228,19 +241,33 @@ function getRandomPieceName() {
 }
 
 function newPiece() {
-  currentPiece = { ...nextPieces.shift(), position: [3, 0], rot: 0 };
+  currentPiece = { ...nextPieces.shift(), position: [3, 0] };
   nextPieces.push(getRandomPiece());
+  if (!validCheck(currentPiece, false)) return end();
   move();
   drawNext();
 }
 
 function holdPiece() {
+  if (usedHold) return;
+  usedHold = 1;
   const tempPiece = { ...currentPiece };
   if (hold === 0) newPiece();
-  else currentPiece = { ...hold, position: [3, 0], rot: 0 };
+  else currentPiece = { ...hold, position: [3, 0] };
   hold = { ...tempPiece };
   move();
   drawHold();
+}
+
+function end() {
+  if (score > localStorage.getItem('highscore')) {
+    localStorage.setItem('highscore', score);
+    alert(`New Highscore: ${score}`);
+  } else {
+    alert(`Game Over\nScore: ${score}`);
+  }
+  ended = 1;
+  clearInterval(gameInterval);
 }
 
 function update() {
@@ -255,64 +282,3 @@ function init() {
 }
 
 init();
-
-board[19] = [
-  0,
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-];
-board[18] = [
-  0,
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-];
-board[17] = [
-  0,
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-];
-board[16] = [
-  0,
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-];
-board[15] = [
-  0,
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-  { color: 'red' },
-];
