@@ -12,7 +12,7 @@
     <div class="wrapper">
       <h1>Tetris</h1>
       <a href="game.html" id="play" class="button">play</a>
-      <h2>High score: 0</h2>
+      <h2 id="high-score">High score: <span>0</span></h2>
       <details>
         <summary>Controls</summary>
         <ul>
@@ -25,5 +25,8 @@
       </details>
       <h2>Developed by: <a href="https://github.com/M1lken01">m1lk3n01</a></h2>
     </div>
+    <script>
+      document.querySelector('#high-score span').innerHTML = localStorage.getItem('highscore') || 0;
+    </script>
   </body>
 </html>

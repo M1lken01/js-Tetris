@@ -5,6 +5,7 @@ const controls = {
   rotate: 'ArrowUp',
   place: ' ',
   hold: 'c',
+  hold_alt: 'shift',
   pause: 'p',
 };
 
@@ -31,6 +32,7 @@ function onKeyDown(event) {
         fastPlace();
         break;
       case controls.hold.toLowerCase():
+      case controls.hold_alt.toLowerCase():
         holdPiece();
         break;
     }

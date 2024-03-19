@@ -78,13 +78,15 @@ const piecesData = {
 };
 const gameSpeed = 1000;
 let usedHold = 0;
-let currentPiece = { ...getRandomPiece(), position: [3, 0] };
-let nextPieces = Array.from({ length: 4 }, () => getRandomPiece());
+let bag = [];
+let currentPiece = { ...getRandomTetrimino(), position: [3, 0] };
+let nextPieces = Array.from({ length: 4 }, () => getRandomTetrimino());
 let hold = 0;
 
 function move(vector = [0, 0], rotate = 0, place = true) {
   if (ended || paused) return;
 
+  sound('move');
   const newPosition = [currentPiece.position[0] + vector[0], currentPiece.position[1] + vector[1]];
   const newShape = rotate ? rotatePiece(currentPiece) : currentPiece.shape;
   const offsetLimit = Math.floor(currentPiece.size / 2);
@@ -93,6 +95,7 @@ function move(vector = [0, 0], rotate = 0, place = true) {
   let rotatedValidPosition = null;
 
   if (rotate && currentPiece.size > 2) {
+    sound('rotate');
     for (let offset = -offsetLimit; offset <= offsetLimit; offset++) {
       const rotatedPosition = [newPosition[0] + offset, newPosition[1]];
       if (validCheck({ position: rotatedPosition, shape: newShape, vectorY: vector[1] }, false)) {
@@ -113,6 +116,11 @@ function move(vector = [0, 0], rotate = 0, place = true) {
   }
 
   drawGame();
+}
+
+function sound(name) {
+  let audio = new Audio(`audio/${name}.wav`);
+  audio.play();
 }
 
 const rotatePiece = (piece) => mapToShape(rotateArrayClockwise(shapeToMap(piece)));
@@ -204,6 +212,7 @@ function clearLines() {
   }
   console.log(clearedLines);
 
+  if (clearedLines.length > 0) sound('clear');
   for (let i = 0; i < clearedLines.length; i++) {
     console.log('clearing ' + i);
     const clearedRow = clearedLines[i];
@@ -217,6 +226,7 @@ function clearLines() {
 }
 
 function placePiece() {
+  sound('place');
   for (let i = 0; i < currentPiece.shape.length; i++) {
     const [px, py] = currentPiece.shape[i];
     const boardX = currentPiece.position[0] + px;
@@ -228,6 +238,20 @@ function placePiece() {
   usedHold = 0;
   clearLines();
   newPiece();
+}
+
+function generateBag() {
+  let keys = Object.keys(piecesData);
+  for (let i = keys.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [keys[i], keys[j]] = [keys[j], keys[i]];
+  }
+  bag = keys.map((key) => piecesData[key]);
+}
+
+function getRandomTetrimino() {
+  if (bag.length === 0) generateBag();
+  return bag.pop();
 }
 
 function getRandomPiece() {
@@ -242,7 +266,7 @@ function getRandomPieceName() {
 
 function newPiece() {
   currentPiece = { ...nextPieces.shift(), position: [3, 0] };
-  nextPieces.push(getRandomPiece());
+  nextPieces.push(getRandomTetrimino());
   if (!validCheck(currentPiece, false)) return end();
   move();
   drawNext();
@@ -251,6 +275,7 @@ function newPiece() {
 function holdPiece() {
   if (usedHold) return;
   usedHold = 1;
+  sound('hold');
   const tempPiece = { ...currentPiece };
   if (hold === 0) newPiece();
   else currentPiece = { ...hold, position: [3, 0] };
@@ -260,6 +285,7 @@ function holdPiece() {
 }
 
 function end() {
+  sound('lose');
   if (score > localStorage.getItem('highscore')) {
     localStorage.setItem('highscore', score);
     alert(`New Highscore: ${score}`);
@@ -273,6 +299,7 @@ function end() {
 function update() {
   move([0, 1]);
 }
+
 const gameInterval = setInterval(update, gameSpeed);
 
 function init() {
